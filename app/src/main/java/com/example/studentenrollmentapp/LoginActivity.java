@@ -1,18 +1,21 @@
 package com.example.studentenrollmentapp;
 
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
-import android.text.TextUtils;
 import android.view.View;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
+
 import androidx.appcompat.app.AppCompatActivity;
 
 public class LoginActivity extends AppCompatActivity {
 
-    private EditText etEmail, etPassword;
+    private EditText edtEmail, edtPassword;
     private DatabaseHelper databaseHelper;
 
     @Override
@@ -20,26 +23,25 @@ public class LoginActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
-        // Initialize views and database helper
-        etEmail = findViewById(R.id.et_email);
-        etPassword = findViewById(R.id.et_password);
+        edtEmail = findViewById(R.id.edt_email);
+        edtPassword = findViewById(R.id.edt_password);
+        Button btnLogin = findViewById(R.id.btn_login);
         databaseHelper = new DatabaseHelper(this);
 
-        // Login button logic
-        findViewById(R.id.btn_login).setOnClickListener(new View.OnClickListener() {
+        btnLogin.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                loginStudent();
+                loginUser();
             }
         });
     }
 
-    private void loginStudent() {
-        String email = etEmail.getText().toString().trim();
-        String password = etPassword.getText().toString().trim();
+    private void loginUser() {
+        String email = edtEmail.getText().toString().trim();
+        String password = edtPassword.getText().toString().trim();
 
-        if (TextUtils.isEmpty(email) || TextUtils.isEmpty(password)) {
-            Toast.makeText(this, "Email and Password are required", Toast.LENGTH_SHORT).show();
+        if (email.isEmpty() || password.isEmpty()) {
+            Toast.makeText(this, "Please fill in all fields", Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -51,16 +53,25 @@ public class LoginActivity extends AppCompatActivity {
                 null, null, null);
 
         if (cursor != null && cursor.moveToFirst()) {
+            int studentId = cursor.getInt(0);
             cursor.close();
-            db.close();
+
+            // Save student ID in SharedPreferences
+            SharedPreferences preferences = getSharedPreferences("StudentSession", Context.MODE_PRIVATE);
+            SharedPreferences.Editor editor = preferences.edit();
+            editor.putInt("student_id", studentId);
+            editor.apply();
+
             Toast.makeText(this, "Login successful", Toast.LENGTH_SHORT).show();
-            Intent intent = new Intent(LoginActivity.this, EnrollmentActivity.class);
-            startActivity(intent);
-            finish();
+            startActivity(new Intent(LoginActivity.this, EnrollmentActivity.class));
+            finish(); // Prevent back navigation to LoginActivity
         } else {
             Toast.makeText(this, "Invalid email or password", Toast.LENGTH_SHORT).show();
-            if (cursor != null) cursor.close();
-            db.close();
         }
+
+        if (cursor != null) {
+            cursor.close();
+        }
+        db.close();
     }
 }
