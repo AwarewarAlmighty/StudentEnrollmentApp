@@ -31,4 +31,10 @@
             android:padding="8dp"
             android:textColor="@color/black"/>
     </ScrollView>
+    <Button
+        android:id="@+id/btn_logout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Log Out"
+        android:layout_marginTop="16dp" />
 </LinearLayout>
